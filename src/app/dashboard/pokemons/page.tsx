@@ -1,24 +1,17 @@
-// import { notFound } from "next/navigation";
+import { PokemonGrid } from "@/pokemons";
+import { getPokemons } from "@/pokemons/hooks";
+import { Metadata } from "next";
 
-import { PokemonGrid, PokemonsResponse, SimplePokemon } from "@/pokemons";
-
-const getPokemons = async (limit = 20, offser = 0):Promise<SimplePokemon[]> => {
-   const data:PokemonsResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=' + limit + '&offset=' + offser)
-      .then(res => res.json())
-   const pokemons = data.results.map((pokemon, index) => ({
-      id: pokemon.url.split('/').at(-2)!,
-      name: pokemon.name
-   }));
-
-   // throw notFound();
-   return pokemons;
+export const metadata: Metadata = {
+   title: 'Listado de pokémons',
+   description: 'Listado de pokémons'
 }
 
 export default async function Pokemonspage() {
-
-   const pokemons = await getPokemons();
+   const pokemons = await getPokemons(151,0);
    return (
       <div className="flex flex-col">
+         <span className="text-5xl my-2">Listado de Pokémons <small className="text-blue-500">estático</small></span>
          <PokemonGrid pokemons={pokemons}/>
       </div>
    )

@@ -1,12 +1,34 @@
-import { Pokemon } from "@/pokemons";
-import Image from "next/image";
+import { Pokemon, PokemonsResponse, SimplePokemon } from '@/pokemons';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
+
 
 interface Props {
-    params: { id: string };
+    params: { name: string };
+}
+
+export const getPokemons = async (limit = 151, offser = 0): Promise<SimplePokemon[]> => {
+    try {
+        
+        const data: PokemonsResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=' + limit + '&offset=' + offser)
+            .then(res => res.json())
+        const pokemons = data.results.map((pokemon) => ({
+            id: pokemon.url.split('/').at(-2)!,
+            name: pokemon.name
+        }));
+        return pokemons;
+    } catch (error) {
+        console.log(error);
+        throw notFound();
+    }
 }
 
 export async function generateStaticParams() {
-    return Array.from({ length: 151 }, (_, i) => ( { id: (i + 1).toString() }));
+    try {
+        return await getPokemons(151,0);
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 const getPokemon = async (value: string) => {
@@ -21,7 +43,7 @@ const getPokemon = async (value: string) => {
 
 export async function generateMetadata({ params }: Props) {
     try {
-        const { id, name } = await getPokemon(params.id);
+        const { id, name } = await getPokemon(params.name);
         return {
             title: `#${id} - ${name}`,
             description: `Páguina del pokémon ${name}`
@@ -35,10 +57,9 @@ export async function generateMetadata({ params }: Props) {
     }
 }
 
-export default async function PokemonPage({ params }: Props) {
 
-    const pokemon:Pokemon = await getPokemon(params.id);
-
+export default async function PokemonPageName({params}: Props) {
+    const pokemon:Pokemon = await getPokemon(params.name);
     return (
         <div className="flex mt-5 flex-col items-center text-slate-800">
             <div className="relative flex flex-col items-center rounded-[20px] w-[700px] mx-auto bg-white bg-clip-border  shadow-lg  p-3">
@@ -119,5 +140,5 @@ export default async function PokemonPage({ params }: Props) {
                 </div>
             </div>
         </div>
-    );
+    )
 }
